@@ -10,24 +10,24 @@ The main advantage of this method is that, unlike classical the interpolation te
 
 Note that, an interpolation based method would be a poor approximation for DLOs with only a few segments. Consider the case with only one segment approximation with interpolation for the example DLO states in the Examples section below. An interpolation method would result in a line segment from the first point to the last point which neither maintains the total length of the DLO nor preserves the main position and orientation distribution of the DLO.
 
-## Method Input parameters:
+## Method 
+### Input parameters:
 
 The method takes the following parameters:
 - `l_dlo`: Length of the original DLO
 - `dlo_state`: State of the original DLO as a list of points (x, y, z) and quaternions (x, y, z, w)
 - `num_seg_d`: Desired number of segments to approximate the DLO with. (between 1 to the length of `dlo_state`)
 
-## Method Output:
+### Output parameters:
 
 The method returns 
 - `approximated_pos`: The approximated DLO state as a list of points (x, y, z) with length equal to `num_seg_d + 1`. The first point is the starting point of the first segment and the last point is the ending point of the last segment.
 - `max_angle`: The maximum rotation angle between the approximated line segments. Useful for making sure the aproximation does not introduce large rotations between the segments.
 - `avg_error`: The average distance error between the original and approximated positions per original segment. 
 
-## Method:
+### Method implementation:
 
-The method is implemented in `dlo_state_approximator.py` script.
-
+The method is implemented in `dlo_state_approximator.py`. 
 
 
 ## Example Approximations:
