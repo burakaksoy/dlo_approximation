@@ -3,12 +3,14 @@
 In deformable linear object (DLO) control applications the object is usually represented as a set of linear segments. More segments provide better approximation of the object, but the number of segments increases the computational cost of the control methods. Especially, when planning a path for the DLO as the number of segments increases, the path planning becomes computationally expensive. 
 
 ## What does this project provide?
-In this project, we provide a method to approximate the DLO with a fewer number of segments given an original DLO representation. 
+In this project, we provide a fast method to approximate the DLO with a fewer number of segments given an original DLO representation. 
 
 ## Advantages:
 The main advantage of this method is that, unlike classical the interpolation techniques, this method approximates the shape of the DLO as closely as possible to the original DLO representation with **equal length segments** while **preserving the total length** of the DLO. 
 
 Note that, an interpolation based method would be a poor approximation for DLOs with only a few segments. Consider the case with only one segment approximation with interpolation for the example DLO states in the Examples section below. An interpolation method would result in a line segment from the first point to the last point which neither maintains the total length of the DLO nor preserves the main position and orientation distribution of the DLO.
+
+Moreover, the method is **computationally  efficient** as opposed to an optimization based fitting method. An optimization based fitting method would require the optimization of the objective function which is a non-linear function of the DLO state. 
 
 ## Method 
 ### Input parameters:
@@ -40,7 +42,7 @@ Example 1                |  Example 2
 
 
 The states of the DLOs are extrated to CSV files (given in `dlo_state_example_1.csv` and `dlo_state_example_2.csv` files) and can be loaded using Python. An example is provided in `dlo_state_csv_plotter.py` generates the plots shown below.
-The center points of the original DLO segments are shown with red points and directions of the approximated DLO segments are shown with blue arrows.
+The center points of the original DLO segments are shown with red points and directions of the DLO segments are shown with blue arrows.
 
 Example 1                |  Example 2
 :-------------------------:|:-------------------------:
