@@ -4,6 +4,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 from .dists_to_line_segments import min_dist_to_polyline
+from .weighting_functions import generate_weighting, generate_middle_peak_weighting_function
 
 
 def average_quaternions(Q, weights):
@@ -33,49 +34,6 @@ def normalize_quaternion(quaternion):
     if norm == 0:
         raise ValueError("Cannot normalize a quaternion with zero norm.")
     return quaternion / norm
-
-def generate_weighting(n, alpha=4):
-    """
-    Generate a discrete weighting function where the last element has a very high weight
-    and the first element has a very low weight. The sum of all weights is normalized to 1.
-    
-    Parameters:
-    n (int): Number of discrete sections.
-    alpha (float): Common ratio of the geometric series, must be greater than 1.
-    
-    Returns:
-    weights (np.ndarray): Normalized weights.
-    """
-    # Generate the weights using a geometric series
-    weights = np.array([alpha**i for i in range(n)], dtype=float)
-    
-    # Normalize the weights to sum up to 1
-    weights /= np.sum(weights)
-    
-    return weights
-
-def generate_middle_peak_weighting(n, sigma=1.0):
-    """
-    Generate a discrete weighting function where the middle element has the highest weight
-    and the first and last elements have the lowest weight. The sum of all weights is normalized to 1.
-    
-    Parameters:
-    n (int): Number of discrete sections.
-    sigma (float): Standard deviation of the Gaussian distribution.
-    
-    Returns:
-    weights (np.ndarray): Normalized weights.
-    """
-    # Generate the x values centered around the middle of the range
-    x = np.linspace(-1, 1, n)
-    
-    # Generate the weights using a Gaussian function
-    weights = np.exp(-0.5 * (x / sigma)**2)
-    
-    # Normalize the weights to sum up to 1
-    weights /= np.sum(weights)
-    
-    return weights
 
 # Start from the beginning of the DLO
 def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
@@ -295,7 +253,7 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
     return approximated_pos, max_angle, avg_error
 
 
-def dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=False):    
+def dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=True):    
     if start_from_beginning:
         return dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d)
     else:

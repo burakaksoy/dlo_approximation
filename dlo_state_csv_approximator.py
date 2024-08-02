@@ -95,17 +95,17 @@ def read_n_plot_csv_data(file, plot=True):
 # file = 'dlo_state_example_1.csv'
 file = 'dlo_state_example_2.csv'
 
-# Read and plot the data
-p_x, p_y, p_z, o_x, o_y, o_z, o_w = read_n_plot_csv_data(file, plot=False)
-# p_z[:] = 0.0
-
-# print the type of p_x
-# print("type(p_x) = ", type(p_x))
-
-dlo_state = [p_x, p_y, p_z, o_x, o_y, o_z, o_w]
-
+# Length of the DLO
 l_dlo = 0.5 # meters
 
+# Read the data for the DLO state from the CSV file
+p_x, p_y, p_z, o_x, o_y, o_z, o_w = read_n_plot_csv_data(file, plot=False)
+# p_z[:] = 0.0
+dlo_state = [p_x, p_y, p_z, o_x, o_y, o_z, o_w]
+
+
+
+#
 avr_errors = []
 
 for num_seg_d in range(1, len(p_x)+1):

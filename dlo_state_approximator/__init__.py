@@ -1,3 +1,4 @@
 from .dlo_state_approximator import dlo_state_approximator
 
 from .dists_to_line_segments import lineseg_dists, min_dist_to_polyline
+from .weighting_functions import generate_weighting, generate_middle_peak_weighting_function

@@ -21,23 +21,6 @@ def generate_weighting(n, alpha=10):
     
     return weights
 
-# Example usage
-n = 3
-weights = generate_weighting(n)
-
-print("weights = ", weights)
-
-# Plotting the weights
-plt.figure(figsize=(10, 6))
-plt.stem(range(n), weights, basefmt=" ", use_line_collection=True)
-plt.xlabel('Discrete Section')
-plt.ylabel('Weight')
-plt.title('Discrete Weighting Function')
-plt.grid(True)
-plt.show()
-
-# ------------------------------------------------------------------------------
-
 def generate_middle_peak_weighting_function(n, sigma=1.0):
     """
     Generate a discrete weighting function where the middle element has the highest weight
@@ -61,15 +44,32 @@ def generate_middle_peak_weighting_function(n, sigma=1.0):
     
     return weights
 
-# Example usage
-n = 3
-weights = generate_middle_peak_weighting_function(n, sigma=0.4)
+if __name__ == "__main__":
+    # Example usage
+    n = 3
+    weights = generate_weighting(n)
 
-# Plotting the weights
-plt.figure(figsize=(10, 6))
-plt.stem(range(n), weights, basefmt=" ", use_line_collection=True)
-plt.xlabel('Discrete Section')
-plt.ylabel('Weight')
-plt.title('Middle Peak Discrete Weighting Function')
-plt.grid(True)
-plt.show()
+    print("weights = ", weights)
+
+    # Plotting the weights
+    plt.figure(figsize=(10, 6))
+    plt.stem(range(n), weights, basefmt=" ", use_line_collection=True)
+    plt.xlabel('Discrete Section')
+    plt.ylabel('Weight')
+    plt.title('Discrete Weighting Function')
+    plt.grid(True)
+    plt.show()
+
+    # ------------------------------------------------------------------------------
+    # Example usage
+    n = 3
+    weights = generate_middle_peak_weighting_function(n, sigma=0.4)
+
+    # Plotting the weights
+    plt.figure(figsize=(10, 6))
+    plt.stem(range(n), weights, basefmt=" ", use_line_collection=True)
+    plt.xlabel('Discrete Section')
+    plt.ylabel('Weight')
+    plt.title('Middle Peak Discrete Weighting Function')
+    plt.grid(True)
+    plt.show()
