@@ -1,1 +1,3 @@
 from .dlo_state_approximator import dlo_state_approximator
+
+from .dists_to_line_segments import lineseg_dists, min_dist_to_polyline

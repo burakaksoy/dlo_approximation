@@ -81,7 +81,8 @@ The average distance error between the original and approximated positions per o
 
 Example 1                |  Example 2
 :-------------------------:|:-------------------------:
-TODO  |  TODO
+Average Error vs. Number of Segments  |  Average Error vs. Number of Segments
+![](./.imgs/ex1_avr_err_vs_num_segments_start_from_beginning.png)  |  ![](./.imgs/ex2_avr_err_vs_num_segments_start_from_beginning.png)
 
 ### Maximum rotation angle wrt number of segments
 The maximum rotation angle between the approximated line segments with respect to the number of segments are plotted as shown below.

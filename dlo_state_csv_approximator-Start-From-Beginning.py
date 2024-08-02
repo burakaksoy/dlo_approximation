@@ -89,7 +89,7 @@ def read_n_plot_csv_data(file, plot=True):
         # Show the plot
         plt.show()
     
-    return p_x, p_y, p_z, o_x, o_y, o_z, o_w
+    return p_x.to_numpy(), p_y.to_numpy(), p_z.to_numpy(), o_x.to_numpy(), o_y.to_numpy(), o_z.to_numpy(), o_w.to_numpy()
 
 # File paths
 # file = 'dlo_state_example_1.csv'
@@ -99,30 +99,50 @@ file = 'dlo_state_example_2.csv'
 p_x, p_y, p_z, o_x, o_y, o_z, o_w = read_n_plot_csv_data(file, plot=False)
 # p_z[:] = 0.0
 
+# print the type of p_x
+# print("type(p_x) = ", type(p_x))
+
 dlo_state = [p_x, p_y, p_z, o_x, o_y, o_z, o_w]
 
 l_dlo = 0.5 # meters
 
+avr_errors = []
+
 for num_seg_d in range(1, len(p_x)+1):
-    approximated_pos, max_angle, avg_error = dlo_state_approximator(l_dlo, dlo_state, num_seg_d)
+    approximated_pos, max_angle, avg_error = dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=True)
     
     # # Find the cumulative length of the approximated positions
     # cum_len = np.cumsum(np.linalg.norm(approximated_pos[1:,:] - approximated_pos[:-1,:], axis=1))
     # print("cum_len = ", cum_len[-1])
+    
+    print("avg_error = ", avg_error)
+    avr_errors.append(avg_error)
         
     print("-------------------------------------------")
 
-    # plot the results
-    ax = plt.figure().add_subplot(projection='3d')
+    # # plot the results
+    # ax = plt.figure().add_subplot(projection='3d')
     
-    # Add title with the number of segments
-    ax.set_title("Approx. w/ Number of Segments = " + str(num_seg_d))
+    # # Add title with the number of segments
+    # ax.set_title("Approx. w/ Number of Segments = " + str(num_seg_d))
     
-    ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
-    ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
-    ax.legend()
+    # ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
+    # ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
+    # ax.legend()
 
-    set_axes_equal(ax)
-    # ax.set_aspect('equal')
-    plt.show()
+    # set_axes_equal(ax)
+    # # ax.set_aspect('equal')
+    # plt.show()
 
+# Plot the average errors for each number of segments
+plt.figure()
+plt.plot(range(1, len(p_x)+1), avr_errors, linewidth=5)
+plt.xlabel('Number of Segments')
+plt.ylabel('Average Error')
+
+# Add a title to the plot
+plt.title('Average Error vs. Number of Segments')
+# Add gridlines to the plot
+plt.grid(True)
+
+plt.show()

@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
+from .dists_to_line_segments import min_dist_to_polyline
+
 
 def average_quaternions(Q, weights):
     '''
@@ -102,7 +104,6 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
     end_tip   = None
     
     max_angle = 0
-    avg_error = 0
 
     for i in range(num_seg_d):
         # Calculate the starting and ending indices for the current group
@@ -150,9 +151,11 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
         if i == num_seg_d - 1:
             approximated_pos[i+1,:] = end_tip
             
-        # TODO: Calculate the error between the original and approximated positions
         # TODO: Return the max rotation angle between the approximated line segments
-        # TODO: Return the average error between the original and approximated positions per original segment
+            
+    errors = min_dist_to_polyline(points=np.array(dlo_state[0:3]).T, polyline=approximated_pos)
+    # print("errors = ", errors)
+    avg_error = np.mean(errors)
             
     return approximated_pos, max_angle, avg_error
 
@@ -183,7 +186,6 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
     end_tip   = None
     
     max_angle = 0
-    avg_error = 0
 
     mid_idx_d = int(np.round(num_seg_d/2))
 
@@ -236,7 +238,7 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
         if i == num_seg_d - 1:
             approximated_pos[i+1,:] = end_tip
             
-    print("starting the negative direction")
+    # print("starting the negative direction")
     
     start_tip = approximated_pos[mid_idx_d,:]
     end_tip   = approximated_pos[mid_idx_d,:]
@@ -284,14 +286,16 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
         
         approximated_pos[i,:] = end_tip
         
-        # TODO: Calculate the error between the original and approximated positions
         # TODO: Return the max rotation angle between the approximated line segments
-        # TODO: Return the average error between the original and approximated positions per original segment
+
+    errors = min_dist_to_polyline(points=np.array(dlo_state[0:3]).T, polyline=approximated_pos)
+    # print("errors = ", errors)
+    avg_error = np.mean(errors)
 
     return approximated_pos, max_angle, avg_error
 
 
-def dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=True):    
+def dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=False):    
     if start_from_beginning:
         return dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d)
     else:
