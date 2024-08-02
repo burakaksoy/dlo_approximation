@@ -1,6 +1,8 @@
+import time
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 from dlo_state_approximator import dlo_state_approximator
 
@@ -101,48 +103,82 @@ l_dlo = 0.5 # meters
 # Read the data for the DLO state from the CSV file
 p_x, p_y, p_z, o_x, o_y, o_z, o_w = read_n_plot_csv_data(file, plot=False)
 # p_z[:] = 0.0
-dlo_state = [p_x, p_y, p_z, o_x, o_y, o_z, o_w]
+dlo_state = np.array([p_x, p_y, p_z, o_x, o_y, o_z, o_w]).T # Nx7 numpy array
+# print("dlo_state = ", dlo_state)
+# print("dlo_state.shape = ", dlo_state.shape)
 
-
-
-#
 avr_errors = []
+max_angles = [] # (degrees)
+run_times = []
 
-for num_seg_d in range(1, len(p_x)+1):
+for num_seg_d in range(1, len(dlo_state)+1):
+    
+    start_time = time.time()
     approximated_pos, max_angle, avg_error = dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=True)
+    end_time = time.time()
     
     # # Find the cumulative length of the approximated positions
     # cum_len = np.cumsum(np.linalg.norm(approximated_pos[1:,:] - approximated_pos[:-1,:], axis=1))
     # print("cum_len = ", cum_len[-1])
     
-    print("avg_error = ", avg_error)
     avr_errors.append(avg_error)
+    print("avg_error = ", avg_error)
+    max_angles.append(max_angle)
+    print("max_angle = ", max_angle)
+    run_times.append(end_time - start_time)
+    print("run_time = ", end_time - start_time)
         
     print("-------------------------------------------")
 
-    # # plot the results
-    # ax = plt.figure().add_subplot(projection='3d')
+    # plot the results
+    ax = plt.figure().add_subplot(projection='3d')
     
-    # # Add title with the number of segments
-    # ax.set_title("Approx. w/ Number of Segments = " + str(num_seg_d))
+    # Add title with the number of segments
+    ax.set_title("Approx. w/ Number of Segments = " + str(num_seg_d))
     
-    # ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
-    # ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
-    # ax.legend()
+    ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
+    ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
+    ax.legend()
 
-    # set_axes_equal(ax)
-    # # ax.set_aspect('equal')
-    # plt.show()
+    set_axes_equal(ax)
+    # ax.set_aspect('equal')
+    plt.show()
 
+# ------------------------------------------------------------------------------
 # Plot the average errors for each number of segments
 plt.figure()
-plt.plot(range(1, len(p_x)+1), avr_errors, linewidth=5)
+
+plt.plot(range(1, len(dlo_state)+1), avr_errors, linewidth=5)
+
 plt.xlabel('Number of Segments')
 plt.ylabel('Average Error')
-
-# Add a title to the plot
 plt.title('Average Error vs. Number of Segments')
-# Add gridlines to the plot
 plt.grid(True)
+plt.show()
 
+# ------------------------------------------------------------------------------
+# Plot the maximum angles for each number of segments
+plt.figure()
+plt.plot(range(1, len(dlo_state)+1), max_angles, linewidth=5)
+
+plt.xlabel('Number of Segments')
+plt.ylabel('Maximum Angle (degrees)')
+plt.title('Maximum Rotation Angle btw Segments vs. Number of Segments')
+plt.grid(True)
+plt.show()
+
+# ------------------------------------------------------------------------------
+# Plot the run times for each number of segments
+plt.figure()
+
+plt.plot(range(1, len(dlo_state)+1), 1000*np.array(run_times), linewidth=5)
+# # Also plot the average run time
+# run_time_avg = 1000*np.mean(run_times)
+# plt.plot(range(1, len(dlo_state)+1), [run_time_avg]*len(dlo_state), linewidth=5, linestyle='--')
+# plt.legend(['Run Time', 'Average Run Time'])
+
+plt.xlabel('Number of Segments')
+plt.ylabel('Run Time (milliseconds)')
+plt.title('Run Time vs. Number of Segments')
+plt.grid(True)
 plt.show()

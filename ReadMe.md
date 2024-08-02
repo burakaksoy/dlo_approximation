@@ -17,14 +17,14 @@ Moreover, the method is **computationally  efficient** as opposed to an optimiza
 
 The method takes the following parameters:
 - `l_dlo`: Length of the original DLO
-- `dlo_state`: State of the original DLO as a list of points (x, y, z) and quaternions (x, y, z, w)
+- `dlo_state`: State of the original DLO as a Nx7 numpy array with each colum is a list of points (x, y, z) and quaternions (x, y, z, w) respectively.
 - `num_seg_d`: Desired number of segments to approximate the DLO with. (between 1 to the length of `dlo_state`)
 
 ### Output parameters:
 
 The method returns 
 - `approximated_pos`: The approximated DLO state as a list of points (x, y, z) with length equal to `num_seg_d + 1`. The first point is the starting point of the first segment and the last point is the ending point of the last segment.
-- `max_angle`: The maximum rotation angle between the approximated line segments. Useful for making sure the aproximation does not introduce large rotations between the segments.
+- `max_angle`: The maximum rotation angle between the approximated line segments. Useful for making sure the aproximation does not introduce large rotations between the segments (degrees).
 - `avg_error`: The average distance error between the original and approximated positions per original segment. 
 
 ### Method implementation:

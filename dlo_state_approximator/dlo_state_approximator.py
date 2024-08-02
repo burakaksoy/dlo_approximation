@@ -37,10 +37,7 @@ def normalize_quaternion(quaternion):
 
 # Start from the beginning of the DLO
 def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
-
-    p_x, p_y, p_z, o_x, o_y, o_z, o_w = dlo_state[0], dlo_state[1], dlo_state[2], dlo_state[3], dlo_state[4], dlo_state[5], dlo_state[6]
-
-    num_seg = len(p_x) # 40 # number of segments
+    num_seg = len(dlo_state) # number of segments
     # print("num_seg = ", num_seg)
     
     # print("num_seg_d = ", num_seg_d)
@@ -70,22 +67,11 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
         
         # print("start_idx = ", start_idx)
         # print("end_idx = ", end_idx)
-                
-        # Convert the group positions into a Nx3 array
-        group_pos = np.array([p_x[start_idx:end_idx], 
-                            p_y[start_idx:end_idx], 
-                            p_z[start_idx:end_idx]]).T  # Nx3
-        
-        group_ori = np.array([o_w[start_idx:end_idx],
-                              o_x[start_idx:end_idx], 
-                              o_y[start_idx:end_idx], 
-                              o_z[start_idx:end_idx]]).T  # Nx4
+                        
+        # Calculate the mean orientation for the current group
+        group_ori = dlo_state[start_idx:end_idx,(6,3,4,5)] # Nx4, (w, x, y, z) order.
         weights = np.ones(end_idx-start_idx)  # Assuming equal weight for simplicity
         
-        # Calculate the mean position for the current group
-        group_pos_mean = np.mean(group_pos, axis=0) # (,3)
-        
-        # Calculate the mean orientation for the current group
         group_ori_mean = average_quaternions(group_ori, weights) # [w, x, y, z]
         
         # Calculate the main direction vector for the current group
@@ -98,6 +84,12 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
                         
         # Determine the start and end tip positions for the current group using the main direction vector
         if start_tip is None:
+            # Convert the group positions into a Nx3 array
+            group_pos = dlo_state[start_idx:end_idx,(0,1,2)] # Nx3, (x, y, z) order.
+            
+            # Calculate the mean position for the current group
+            group_pos_mean = np.mean(group_pos, axis=0) # (,3)
+        
             start_tip = group_pos_mean - group_dir * l_seg_d/2.0 # Nx3
             end_tip = group_pos_mean + group_dir * l_seg_d/2.0 # Nx3
         else:
@@ -111,7 +103,7 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
             
         # TODO: Return the max rotation angle between the approximated line segments
             
-    errors = min_dist_to_polyline(points=np.array(dlo_state[0:3]).T, polyline=approximated_pos)
+    errors = min_dist_to_polyline(points=dlo_state[:,0:3], polyline=approximated_pos) 
     # print("errors = ", errors)
     avg_error = np.mean(errors)
             
@@ -119,15 +111,10 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
 
 
 def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
-    
-    p_x, p_y, p_z, o_x, o_y, o_z, o_w = dlo_state[0], dlo_state[1], dlo_state[2], dlo_state[3], dlo_state[4], dlo_state[5], dlo_state[6]
-
-    num_seg = len(p_x) # 40 # number of segments
+    num_seg = len(dlo_state) # number of segments
     # print("num_seg = ", num_seg)
     
     l_seg_d = l_dlo / num_seg_d # meters # desired segment length
-
-    ## -------- End Parameters ---------- ##      
 
     # Make sure the desired number of segments is less than or equal to the original number of segments
     assert 1 <= num_seg_d, "The desired number of segments must be more than or equal to 1."  
@@ -155,22 +142,12 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
         
         # print("start_idx = ", start_idx)
         # print("end_idx = ", end_idx)
-            
-        # Convert the group positions into a Nx3 array
-        group_pos = np.array([p_x[start_idx:end_idx], 
-                            p_y[start_idx:end_idx], 
-                            p_z[start_idx:end_idx]]).T  # Nx3
         
-        group_ori = np.array([o_w[start_idx:end_idx],
-                              o_x[start_idx:end_idx], 
-                              o_y[start_idx:end_idx], 
-                              o_z[start_idx:end_idx]]).T  # Nx4
+        group_ori = dlo_state[start_idx:end_idx,(6,3,4,5)] # Nx4, (w, x, y, z) order.
         weights = np.ones(end_idx-start_idx)  # Assuming equal weight for simplicity
         # weights = generate_weighting(end_idx-start_idx, alpha=10)
         # weights = generate_middle_peak_weighting(end_idx-start_idx, sigma=0.4)
         
-        # Calculate the mean position for the current group
-        group_pos_mean = np.mean(group_pos, axis=0) # (,3)
         
         # Calculate the mean orientation for the current group
         group_ori_mean = average_quaternions(group_ori, weights) # [w, x, y, z]
@@ -185,6 +162,12 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
                         
         # Determine the start and end tip positions for the current group using the main direction vector
         if start_tip is None:
+            # Convert the group positions into a Nx3 array
+            group_pos = dlo_state[start_idx:end_idx,(0,1,2)] # Nx3, (x, y, z) order.
+            
+            # Calculate the mean position for the current group
+            group_pos_mean = np.mean(group_pos, axis=0) # (,3)
+            
             start_tip = group_pos_mean - group_dir * l_seg_d/2.0 # Nx3
             end_tip = group_pos_mean + group_dir * l_seg_d/2.0 # Nx3
         else:
@@ -210,22 +193,11 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
                     
         # print("start_idx = ", start_idx)
         # print("end_idx = ", end_idx)
-            
-        # Convert the group positions into a Nx3 array
-        group_pos = np.array([p_x[end_idx:start_idx], 
-                              p_y[end_idx:start_idx], 
-                              p_z[end_idx:start_idx]]).T  # Nx3
         
-        group_ori = np.array([o_w[end_idx:start_idx],
-                              o_x[end_idx:start_idx], 
-                              o_y[end_idx:start_idx], 
-                              o_z[end_idx:start_idx]]).T  # Nx4
+        group_ori = dlo_state[end_idx:start_idx,(6,3,4,5)] # Nx4, (w, x, y, z) order.
         weights = np.ones(start_idx-end_idx)  # Assuming equal weight for simplicity
         # weights = generate_weighting(start_idx-end_idx, alpha=10)
         # weights = generate_middle_peak_weighting(start_idx-end_idx, sigma=0.4)
-        
-        # Calculate the mean position for the current group
-        group_pos_mean = np.mean(group_pos, axis=0) # (,3)
         
         # Calculate the mean orientation for the current group
         group_ori_mean = average_quaternions(group_ori, weights) # [w, x, y, z]
@@ -246,7 +218,7 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
         
         # TODO: Return the max rotation angle between the approximated line segments
 
-    errors = min_dist_to_polyline(points=np.array(dlo_state[0:3]).T, polyline=approximated_pos)
+    errors = min_dist_to_polyline(points=dlo_state[:,0:3], polyline=approximated_pos) 
     # print("errors = ", errors)
     avg_error = np.mean(errors)
 
