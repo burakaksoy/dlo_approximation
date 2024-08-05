@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+import traceback
 
 from dlo_state_approximator import dlo_state_approximator
 
@@ -94,8 +95,8 @@ def read_n_plot_csv_data(file, plot=True):
     return p_x.to_numpy(), p_y.to_numpy(), p_z.to_numpy(), o_x.to_numpy(), o_y.to_numpy(), o_z.to_numpy(), o_w.to_numpy()
 
 # File paths
-# file = 'dlo_state_example_1.csv'
-file = 'dlo_state_example_2.csv'
+file = 'dlo_state_example_1.csv'
+# file = 'dlo_state_example_2.csv'
 
 # Length of the DLO
 l_dlo = 0.5 # meters
@@ -104,45 +105,65 @@ l_dlo = 0.5 # meters
 p_x, p_y, p_z, o_x, o_y, o_z, o_w = read_n_plot_csv_data(file, plot=False)
 # p_z[:] = 0.0
 dlo_state = np.array([p_x, p_y, p_z, o_x, o_y, o_z, o_w]).T # Nx7 numpy array
-# print("dlo_state = ", dlo_state)
-# print("dlo_state.shape = ", dlo_state.shape)
+# print("dlo_state =", dlo_state)
+# print("dlo_state.shape =", dlo_state.shape)
 
 avr_errors = []
-max_angles = [] # (degrees)
+joint_poss = [] # 
+max_angles = [] # (radians)
 run_times = []
 
 for num_seg_d in range(1, len(dlo_state)+1):
-    
-    start_time = time.time()
-    approximated_pos, max_angle, avg_error = dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=True)
-    end_time = time.time()
-    
-    # # Find the cumulative length of the approximated positions
-    # cum_len = np.cumsum(np.linalg.norm(approximated_pos[1:,:] - approximated_pos[:-1,:], axis=1))
-    # print("cum_len = ", cum_len[-1])
-    
-    avr_errors.append(avg_error)
-    print("avg_error = ", avg_error)
-    max_angles.append(max_angle)
-    print("max_angle = ", max_angle)
-    run_times.append(end_time - start_time)
-    print("run_time = ", end_time - start_time)
+    try:
+        print("num_seg_d =", num_seg_d)
         
-    print("-------------------------------------------")
+        time.sleep(0.5) # Needed to avoid the wrong timing results
+        start_time = time.time()
+        approximated_pos, joint_pos, max_angle, avg_error = dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=True)
+        end_time = time.time()
+        
+        # # Find the cumulative length of the approximated positions
+        # cum_len = np.cumsum(np.linalg.norm(approximated_pos[1:,:] - approximated_pos[:-1,:], axis=1))
+        # print("cum_len =", cum_len[-1])
+        
+        avr_errors.append(100*avg_error)
+        print("avg_error =", 100*avg_error, "cm.")
+        
+        joint_poss.append(joint_pos)
+        print("joint_pos =", joint_pos, "(first 3 are in meters, the next are in radians).")
+        
+        max_angles.append(np.rad2deg(max_angle))
+        print("max_angle =", np.rad2deg(max_angle), "degrees.")
+        
+        run_times.append(end_time - start_time)
+        print("run_time =", (end_time - start_time)*1000, "ms.")
+            
+        print("-------------------------------------------")
 
-    # plot the results
-    ax = plt.figure().add_subplot(projection='3d')
-    
-    # Add title with the number of segments
-    ax.set_title("Approx. w/ Number of Segments = " + str(num_seg_d))
-    
-    ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
-    ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
-    ax.legend()
+        # # plot the results
+        # ax = plt.figure().add_subplot(projection='3d')
+        
+        # # Add title with the number of segments
+        # ax.set_title("Approx. w/ Number of Segments = " + str(num_seg_d), fontsize=30)
+        
+        # ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
+        # ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
 
-    set_axes_equal(ax)
-    # ax.set_aspect('equal')
-    plt.show()
+        # ax.legend(fontsize=20)
+        # ax.tick_params(axis='both', which='major', labelsize=20)
+        # # ax.set_aspect('equal')
+        # set_axes_equal(ax)
+        # plt.show()
+        
+    
+    except:
+        # Print the traceback
+        print(traceback.format_exc())
+        
+        # Print the error message
+        print("Error occurred for num_seg_d =", num_seg_d)
+        
+        continue
 
 # ------------------------------------------------------------------------------
 # Plot the average errors for each number of segments
@@ -150,10 +171,13 @@ plt.figure()
 
 plt.plot(range(1, len(dlo_state)+1), avr_errors, linewidth=5)
 
-plt.xlabel('Number of Segments')
-plt.ylabel('Average Error')
-plt.title('Average Error vs. Number of Segments')
+plt.xlabel('Number of Segments', fontsize=25)
+plt.ylabel('Average Error (cm)', fontsize=25)
+plt.title('Average Error vs. Number of Segments', fontsize=30)
 plt.grid(True)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+plt.tight_layout()
 plt.show()
 
 # ------------------------------------------------------------------------------
@@ -161,10 +185,13 @@ plt.show()
 plt.figure()
 plt.plot(range(1, len(dlo_state)+1), max_angles, linewidth=5)
 
-plt.xlabel('Number of Segments')
-plt.ylabel('Maximum Angle (degrees)')
-plt.title('Maximum Rotation Angle btw Segments vs. Number of Segments')
+plt.xlabel('Number of Segments', fontsize=25)
+plt.ylabel('Maximum Angle (degrees)', fontsize=25)
+plt.title('Maximum Rotation Angle btw Segments vs. Number of Segments', fontsize=30)
 plt.grid(True)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+plt.tight_layout()
 plt.show()
 
 # ------------------------------------------------------------------------------
@@ -177,8 +204,11 @@ plt.plot(range(1, len(dlo_state)+1), 1000*np.array(run_times), linewidth=5)
 # plt.plot(range(1, len(dlo_state)+1), [run_time_avg]*len(dlo_state), linewidth=5, linestyle='--')
 # plt.legend(['Run Time', 'Average Run Time'])
 
-plt.xlabel('Number of Segments')
-plt.ylabel('Run Time (milliseconds)')
-plt.title('Run Time vs. Number of Segments')
+plt.xlabel('Number of Segments', fontsize=25)
+plt.ylabel('Run Time (milliseconds)', fontsize=25)
+plt.title('Run Time vs. Number of Segments', fontsize=30)
 plt.grid(True)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+plt.tight_layout()
 plt.show()

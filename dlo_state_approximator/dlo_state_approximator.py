@@ -5,6 +5,7 @@ from scipy.spatial.transform import Rotation as R
 
 from .dists_to_line_segments import min_dist_to_polyline
 from .weighting_functions import generate_weighting, generate_middle_peak_weighting_function
+from .dlo_inv_kin import dlo_inv_kin
 
 
 def average_quaternions(Q, weights):
@@ -40,8 +41,6 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
     num_seg = len(dlo_state) # number of segments
     # print("num_seg = ", num_seg)
     
-    # print("num_seg_d = ", num_seg_d)
-    
     l_seg_d = l_dlo / num_seg_d # meters # desired segment length
 
     # Make sure the desired number of segments is less than or equal to the original number of segments
@@ -58,8 +57,6 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
     start_tip = None
     end_tip   = None
     
-    max_angle = 0
-
     for i in range(num_seg_d):
         # Calculate the starting and ending indices for the current group
         start_idx = int(np.round(  i   * num_seg_group))
@@ -100,14 +97,24 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
         
         if i == num_seg_d - 1:
             approximated_pos[i+1,:] = end_tip
-            
-        # TODO: Return the max rotation angle between the approximated line segments
+
+    # print("approximated_pos =", approximated_pos)
+                
+    joint_pos = dlo_inv_kin(approximated_pos) 
+    
+    # the maximum absolute rotation angle between the approximated line segments
+    # when there are  two consecutive joints rotating around x and y axes with Rx and Ry respectively.
+    if len(joint_pos) < 6:
+        max_angle = 0.0
+    else:
+        max_angle = np.max(np.abs(joint_pos[5:])) # ignore the first 3 joints (translational joints), and the next 2 joints (the two rotational joints) that are used for inital orientation segment of the DLO.
+
             
     errors = min_dist_to_polyline(points=dlo_state[:,0:3], polyline=approximated_pos) 
     # print("errors = ", errors)
     avg_error = np.mean(errors)
             
-    return approximated_pos, max_angle, avg_error
+    return approximated_pos, joint_pos, max_angle, avg_error
 
 
 def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
@@ -130,8 +137,6 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
     start_tip = None
     end_tip   = None
     
-    max_angle = 0
-
     mid_idx_d = int(np.round(num_seg_d/2))
 
     # POSITIVE DIRECTION FROM THE CENTER OF THE DLO
@@ -216,13 +221,17 @@ def dlo_state_approximator_from_middle(l_dlo, dlo_state, num_seg_d):
         
         approximated_pos[i,:] = end_tip
         
-        # TODO: Return the max rotation angle between the approximated line segments
-
+    joint_pos = dlo_inv_kin(approximated_pos) 
+    
+    # the maximum absolute rotation angle between the approximated line segments
+    # when there are  two consecutive joints rotating around x and y axes with Rx and Ry respectively.
+    max_angle = np.max(np.abs(joint_pos[4:])) # ignore the first 3 joints (translational joints)
+            
     errors = min_dist_to_polyline(points=dlo_state[:,0:3], polyline=approximated_pos) 
     # print("errors = ", errors)
     avg_error = np.mean(errors)
-
-    return approximated_pos, max_angle, avg_error
+            
+    return approximated_pos, joint_pos, max_angle, avg_error
 
 
 def dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=True):    

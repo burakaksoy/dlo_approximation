@@ -24,7 +24,8 @@ The method takes the following parameters:
 
 The method returns 
 - `approximated_pos`: The approximated DLO state as a list of points (x, y, z) with length equal to `num_seg_d + 1`. The first point is the starting point of the first segment and the last point is the ending point of the last segment.
-- `max_angle`: The maximum rotation angle between the approximated line segments. Useful for making sure the aproximation does not introduce large rotations between the segments (degrees).
+- `joint_pos`: The joint positions of the modeled DLO as a (3+2N) x 3 numpy array. The first 3 elements are the translational joint angles (x, y, z) and the last 2N elements are the rotational joint angles around x and y axes for each segment respectively.
+- `max_angle`: The maximum rotation angle between the approximated line segments. Useful for making sure the aproximation does not introduce large rotations between the segments (radians). Obtained by taking the maximum absolute value of the `joint_pos` with ignoring the first 3 joints (translational joints), and the next 2 joints (the two rotational joints) that are used for inital orientation segment of the DLO.
 - `avg_error`: The average distance error between the original and approximated positions per original segment. 
 
 ### Method implementation:
@@ -85,15 +86,15 @@ Average Error vs. Number of Segments  |  Average Error vs. Number of Segments
 ![](./.imgs/ex1_avr_err_vs_num_segments_start_from_beginning.png)  |  ![](./.imgs/ex2_avr_err_vs_num_segments_start_from_beginning.png)
 
 ### Maximum rotation angle wrt number of segments
-The maximum rotation angle between the approximated line segments with respect to the number of segments are plotted as shown below.
+The maximum rotation angle between the approximated line segments with respect to the number of segments are plotted as shown below. Notice that the converged value is the approximation of the maximum curvature angle of the original DLO.
 
 Example 1                |  Example 2
 :-------------------------:|:-------------------------:
-TODO  |  TODO
+![](./.imgs/ex1_max_angle_vs_num_segments_start_from_beginning.png)  |  ![](./.imgs/ex2_max_angle_vs_num_segments_start_from_beginning.png)
 
 ### Run times wrt number of segments
-The run times of the method with respect to the number of segments are plotted as shown below. (Measured on Intel(R) Core(TM) i9-10885h CPU @ 2.40GHz)
+The run times of the method with respect to the number of segments are plotted as shown below. Measured on Intel(R) Core(TM) i9-10885h CPU @ 3.40GHz. As the number of segments increases, the run time increases linearly. Even with the same number of segments (40 segments) with the original DLO representations in the examples, the run time is below 30ms.
 
 Example 1                |  Example 2
 :-------------------------:|:-------------------------:
-TODO  |  TODO
+![](./.imgs/ex1_run_times_vs_num_segments_start_from_beginning.png)  |  ![](./.imgs/ex2_run_times_vs_num_segments_start_from_beginning.png)
