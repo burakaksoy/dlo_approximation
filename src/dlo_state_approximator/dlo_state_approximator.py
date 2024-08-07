@@ -108,7 +108,6 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
         max_angle = 0.0
     else:
         max_angle = np.max(np.abs(joint_pos[5:])) # ignore the first 3 joints (translational joints), and the next 2 joints (the two rotational joints) that are used for inital orientation segment of the DLO.
-
             
     errors = min_dist_to_polyline(points=dlo_state[:,0:3], polyline=approximated_pos) 
     # print("errors = ", errors)

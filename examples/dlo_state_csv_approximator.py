@@ -1,3 +1,11 @@
+import os
+import sys
+
+# This line inserts the package directory at the start of the system path
+# Assuming your test scripts are being run from the `test` directory
+package_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, package_path)
+
 import time
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -118,9 +126,9 @@ for num_seg_d in range(1, len(dlo_state)+1):
         print("num_seg_d =", num_seg_d)
         
         time.sleep(0.5) # Needed to avoid the wrong timing results
-        start_time = time.time()
+        start_time = time.perf_counter()
         approximated_pos, joint_pos, max_angle, avg_error = dlo_state_approximator(l_dlo, dlo_state, num_seg_d, start_from_beginning=True)
-        end_time = time.time()
+        end_time = time.perf_counter()
         
         # # Find the cumulative length of the approximated positions
         # cum_len = np.cumsum(np.linalg.norm(approximated_pos[1:,:] - approximated_pos[:-1,:], axis=1))
@@ -135,8 +143,9 @@ for num_seg_d in range(1, len(dlo_state)+1):
         max_angles.append(np.rad2deg(max_angle))
         print("max_angle =", np.rad2deg(max_angle), "degrees.")
         
-        run_times.append(end_time - start_time)
-        print("run_time =", (end_time - start_time)*1000, "ms.")
+        elapsed_time = end_time - start_time
+        run_times.append(elapsed_time)
+        print("run_time =", (elapsed_time)*1000, "ms.")
             
         print("-------------------------------------------")
 
