@@ -24,7 +24,7 @@ The method takes the following parameters:
 
 The method returns 
 - `approximated_pos`: The approximated DLO state as a list of points (x, y, z) with length equal to `num_seg_d + 1`. The first point is the starting point of the first segment and the last point is the ending point of the last segment.
-- `joint_pos`: The joint positions of the modeled DLO as a (3+2N) x 3 numpy array. The first 3 elements are the translational joint angles (x, y, z) and the last 2N elements are the rotational joint angles around x and y axes for each segment respectively.
+- `joint_pos`: The joint positions of the modeled DLO as a (3+2N) x 1 numpy array. The first 3 elements are the translational joint angles (x, y, z) and the last 2N elements are the rotational joint angles around x and y axes for each segment respectively.
 - `max_angle`: The maximum rotation angle between the approximated line segments. Useful for making sure the aproximation does not introduce large rotations between the segments (radians). Obtained by taking the maximum absolute value of the `joint_pos` with ignoring the first 3 joints (translational joints), and the next 2 joints (the two rotational joints) that are used for inital orientation segment of the DLO.
 - `avg_error`: The average distance error between the original and approximated positions per original segment. 
 
