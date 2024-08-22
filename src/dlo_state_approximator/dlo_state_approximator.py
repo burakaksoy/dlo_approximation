@@ -52,7 +52,8 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
     # print("num_seg_group = ", num_seg_group)
 
     # Initialize the approximated position array
-    approximated_pos = np.zeros((num_seg_d+1, 3))
+    approximated_pos = np.zeros((num_seg_d+1, 3)) # (N+1)x3, (x, y, z) order.
+    approximated_ori = np.zeros((num_seg_d, 3, 3)) # Nx3x3, rotation matrix for each segment.
 
     start_tip = None
     end_tip   = None
@@ -74,6 +75,10 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
         # Calculate the main direction vector for the current group
         # Create a rotation object from the quaternion
         r = R.from_quat([group_ori_mean[1], group_ori_mean[2], group_ori_mean[3], group_ori_mean[0]]) # [x, y, z, w]
+        
+        # Convert to rotation matrix and store it in the approximated orientation array
+        approximated_ori[i] = r.as_matrix() # 3x3
+        
         # Define a unit vector along the z-axis (Assuming the z-axis is the main direction of the dlo)
         vec = np.array([0, 0, 1])        
         # Rotate the vector
@@ -100,14 +105,15 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
 
     # print("approximated_pos =", approximated_pos)
                 
-    joint_pos = dlo_inv_kin(approximated_pos) 
+    # joint_pos = dlo_inv_kin_old(approximated_pos) 
+    joint_pos = dlo_inv_kin(approximated_pos, approximated_ori) 
     
     # the maximum absolute rotation angle between the approximated line segments
-    # when there are  two consecutive joints rotating around x and y axes with Rx and Ry respectively.
-    if len(joint_pos) < 6:
+    # when there are three consecutive joints rotating around x, y, and z axes with Rx, Ry, and Rz respectively.
+    if len(joint_pos) <= 6:
         max_angle = 0.0
     else:
-        max_angle = np.max(np.abs(joint_pos[5:])) # ignore the first 3 joints (translational joints), and the next 2 joints (the two rotational joints) that are used for inital orientation segment of the DLO.
+        max_angle = np.max(np.abs(joint_pos[6:])) # ignore the first 3 joints (translational joints), and the next 3 joints (the three rotational joints) that are used for inital orientation segment of the DLO. Hence we start from the 7th joint (index 6).
             
     errors = min_dist_to_polyline(points=dlo_state[:,0:3], polyline=approximated_pos) 
     # print("errors = ", errors)
@@ -233,8 +239,11 @@ def dlo_state_approximator_from_beginning(l_dlo, dlo_state, num_seg_d):
 #     joint_pos = dlo_inv_kin(approximated_pos, approximated_ori) 
     
 #     # the maximum absolute rotation angle between the approximated line segments
-#     # when there are  two consecutive joints rotating around x and y axes with Rx and Ry respectively.
-#     max_angle = np.max(np.abs(joint_pos[4:])) # ignore the first 3 joints (translational joints)
+#     # when there are three consecutive joints rotating around x, y, and z axes with Rx, Ry, and Rz respectively.
+#     if len(joint_pos) <= 6:
+#         max_angle = 0.0
+#     else:
+#         max_angle = np.max(np.abs(joint_pos[6:])) # ignore the first 3 joints (translational joints), and the next 3 joints (the three rotational joints) that are used for inital orientation segment of the DLO. Hence we start from the 7th joint (index 6).
             
 #     errors = min_dist_to_polyline(points=dlo_state[:,0:3], polyline=approximated_pos) 
 #     # print("errors = ", errors)

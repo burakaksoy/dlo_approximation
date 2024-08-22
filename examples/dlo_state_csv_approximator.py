@@ -102,9 +102,62 @@ def read_n_plot_csv_data(file, plot=True):
     
     return p_x.to_numpy(), p_y.to_numpy(), p_z.to_numpy(), o_x.to_numpy(), o_y.to_numpy(), o_z.to_numpy(), o_w.to_numpy()
 
+def plot_with_fwd_kin(ax, joint_pos, approximated_pos):
+    """
+    Plot the forward kinematics of the DLO given the joint positions and approximated positions.
+    This function allow to confirm the forward kinematics with the joint positions match the approximated positions.
+    
+    Remember the first 3 joint positions are in meters and prismatic, 
+    the remaining ones are in radians and revolute around x, y, z axes respectively. 
+    The zero-config is the straight line along the +z-axis.
+    
+    Note that the approximated_pos is only used to get the link lengths.
+    Then the joint_pos is used to calculate the forward kinematics.
+    """
+    # Get the number of joints
+    num_joints = len(joint_pos)
+    # print("num_joints =", num_joints)
+
+    # Initialize the starting position
+    current_pos = approximated_pos[0] # Start from the first position
+    # print("current_pos =", current_pos)
+    
+    current_rot = np.eye(3)  # Start with the identity rotation matrix
+    
+    # Initialize the list to store the positions of the joints IN 3D SPACE (x, y, z) NOT in the joint space
+    joint_positions = [current_pos.copy()]
+    
+    # Link lengths
+    link_lengths = np.linalg.norm(approximated_pos[1:,:] - approximated_pos[:-1,:], axis=1)
+    # print("link_lengths =", link_lengths)
+
+    # Iterate through the revolute joint positions
+    for i in range(3,num_joints,3):
+        # print("i =", i)
+        # print("joint_pos[{}] = {}".format(i, joint_pos[i:i+3]))
+        
+        # Create a rotation matrix for the revolute joint
+        rotation = R.from_euler('XYZ', joint_pos[i:i+3], degrees=False).as_matrix()
+        
+        current_rot = current_rot @ rotation  # Update the current rotation
+        
+        # Rotate the current position
+        current_pos = current_pos + current_rot @ np.array([0, 0, link_lengths[i//3-1]])  # Move along the z-axis of the current joint
+
+        # Append the current position to the joint positions list
+        joint_positions.append(current_pos.copy())
+
+    # Convert joint positions to a numpy array for plotting
+    joint_positions = np.array(joint_positions)
+    # print("joint_positions =", joint_positions)
+
+    # Plot the joint positions
+    ax.plot(joint_positions[:, 0], joint_positions[:, 1], joint_positions[:, 2], 'g--', label='Forward Kinematics', markersize=12, linewidth=3)
+
+
 # File paths
-file = 'dlo_state_example_1.csv'
-# file = 'dlo_state_example_2.csv'
+# file = 'dlo_state_example_1.csv'
+file = 'dlo_state_example_2.csv'
 
 # Length of the DLO
 l_dlo = 0.5 # meters
@@ -158,12 +211,14 @@ for num_seg_d in range(1, len(dlo_state)+1):
         # ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
         # ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
 
+        # # Plot with the joint positions and forward kinematics as well
+        # plot_with_fwd_kin(ax, joint_pos, approximated_pos)
+        
         # ax.legend(fontsize=20)
         # ax.tick_params(axis='both', which='major', labelsize=20)
         # # ax.set_aspect('equal')
         # set_axes_equal(ax)
         # plt.show()
-        
     
     except:
         # Print the traceback
