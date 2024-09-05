@@ -14,6 +14,7 @@ from scipy.spatial.transform import Rotation as R
 import traceback
 
 from dlo_state_approximator import dlo_state_approximator
+from dlo_state_approximator import dlo_fwd_kin
 
 # Set the default DPI for all images
 plt.rcParams['figure.dpi'] = 100  # e.g. 300 dpi
@@ -154,6 +155,17 @@ def plot_with_fwd_kin(ax, joint_pos, approximated_pos):
     # Plot the joint positions
     ax.plot(joint_positions[:, 0], joint_positions[:, 1], joint_positions[:, 2], 'g--', label='Forward Kinematics', markersize=12, linewidth=3)
 
+def plot_with_fwd_kin_2(ax, joint_pos, l_dlo):
+    """
+    This function is similar to the plot_with_fwd_kin function but it uses the dlo_fwd_kin function to calculate the forward kinematics.
+    Hence it is used to confirm the forward kinematics with the joint positions match the approximated positions.
+    """
+    joint_positions = dlo_fwd_kin(joint_pos, l_dlo, return_rot_matrices=False)
+    # print("joint_positions =", joint_positions)
+
+    # Plot the joint positions
+    ax.plot(joint_positions[:, 0], joint_positions[:, 1], joint_positions[:, 2], 'g--', label='Forward Kinematics', markersize=12, linewidth=3)
+
 
 # File paths
 # file = 'dlo_state_example_1.csv'
@@ -202,23 +214,24 @@ for num_seg_d in range(1, len(dlo_state)+1):
             
         print("-------------------------------------------")
 
-        # # plot the results
-        # ax = plt.figure().add_subplot(projection='3d')
+        # plot the results
+        ax = plt.figure().add_subplot(projection='3d')
         
-        # # Add title with the number of segments
-        # ax.set_title("Approx. w/ Number of Segments = " + str(num_seg_d), fontsize=30)
+        # Add title with the number of segments
+        ax.set_title("Approx. w/ Number of Segments = " + str(num_seg_d), fontsize=30)
         
-        # ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
-        # ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
+        ax.plot(p_x, p_y, p_z, 'o', label='original', markersize=6)
+        ax.plot(approximated_pos[:,0], approximated_pos[:,1],approximated_pos[:,2], '-', label='approximated', markersize=12, linewidth=3)
 
-        # # Plot with the joint positions and forward kinematics as well
+        # Plot with the joint positions and forward kinematics as well
         # plot_with_fwd_kin(ax, joint_pos, approximated_pos)
+        plot_with_fwd_kin_2(ax, joint_pos, l_dlo)
         
-        # ax.legend(fontsize=20)
-        # ax.tick_params(axis='both', which='major', labelsize=20)
-        # # ax.set_aspect('equal')
-        # set_axes_equal(ax)
-        # plt.show()
+        ax.legend(fontsize=20)
+        ax.tick_params(axis='both', which='major', labelsize=20)
+        # ax.set_aspect('equal')
+        set_axes_equal(ax)
+        plt.show()
     
     except:
         # Print the traceback
